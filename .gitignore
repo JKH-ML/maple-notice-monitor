@@ -1,6 +1,6 @@
 node_modules/
 .env
 .env.local
-notice-data.json
 *.log
 .DS_Store
+test-*.js

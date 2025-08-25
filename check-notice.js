@@ -114,82 +114,161 @@ class MapleNoticeChecker {
     const embeds = [];
     const timestamp = new Date().toISOString();
 
+    // Discord 제한사항 헬퍼 함수들
+    const truncateText = (text, maxLength) => {
+      if (!text) return '';
+      return text.length > maxLength ? text.substring(0, maxLength - 3) + '...' : text;
+    };
+
+    const validateUrl = (url) => {
+      if (!url) return 'https://maplestory.nexon.com';
+      try {
+        new URL(url);
+        return url;
+      } catch {
+        return 'https://maplestory.nexon.com';
+      }
+    };
+
     if (changes.type === 'initial') {
       embeds.push({
-        title: '🍁 메이플스토리 공지사항 모니터링 시작',
-        description: `현재 **${changes.newNotices.length}개**의 공지사항을 모니터링합니다.`,
+        title: truncateText('🍁 메이플스토리 공지사항 모니터링 시작', 256),
+        description: truncateText(`현재 **${changes.newNotices.length}개**의 공지사항을 모니터링합니다.`, 4096),
         color: 0x00ff00,
         timestamp: timestamp
       });
 
-      // 최근 5개 공지사항만 표시
-      const recentNotices = changes.newNotices.slice(0, 5);
+      // 최근 3개만 표시하고 field 제한 준수
+      const recentNotices = changes.newNotices.slice(0, 3);
       if (recentNotices.length > 0) {
+        const fields = recentNotices.map(notice => ({
+          name: truncateText(notice.notice_title || '제목 없음', 256),
+          value: truncateText(`[바로가기](${validateUrl(notice.notice_url)})`, 1024),
+          inline: false
+        }));
+
         embeds.push({
-          title: '📋 최근 공지사항',
-          fields: recentNotices.map(notice => ({
-            name: notice.notice_title,
-            value: `[바로가기](${notice.notice_url})`,
-            inline: false
-          })),
+          title: truncateText('📋 최근 공지사항', 256),
+          fields: fields,
           color: 0x0099ff,
           timestamp: timestamp
         });
       }
     } else {
       if (changes.newNotices.length > 0) {
+        // 새 공지사항도 최대 5개로 제한
+        const limitedNewNotices = changes.newNotices.slice(0, 5);
+        const fields = limitedNewNotices.map(notice => ({
+          name: truncateText(notice.notice_title || '제목 없음', 256),
+          value: truncateText(
+            `[바로가기](${validateUrl(notice.notice_url)})\n📅 ${notice.date_notice_modified || notice.date_notice_created || '날짜 정보 없음'}`, 
+            1024
+          ),
+          inline: false
+        }));
+
         embeds.push({
-          title: '🆕 새로운 공지사항',
-          description: `**${changes.newNotices.length}개**의 새로운 공지사항이 등록되었습니다!`,
-          fields: changes.newNotices.map(notice => ({
-            name: notice.notice_title,
-            value: `[바로가기](${notice.notice_url})\n📅 ${notice.date_notice_modified || notice.date_notice_created}`,
-            inline: false
-          })),
+          title: truncateText('🆕 새로운 공지사항', 256),
+          description: truncateText(`**${changes.newNotices.length}개**의 새로운 공지사항이 등록되었습니다!`, 4096),
+          fields: fields,
           color: 0xff6b35,
           timestamp: timestamp
         });
       }
 
       if (changes.updatedNotices.length > 0) {
+        // 업데이트된 공지사항도 최대 5개로 제한
+        const limitedUpdatedNotices = changes.updatedNotices.slice(0, 5);
+        const fields = limitedUpdatedNotices.map(change => ({
+          name: truncateText(change.current.notice_title || '제목 없음', 256),
+          value: truncateText(
+            `[바로가기](${validateUrl(change.current.notice_url)})\n📅 ${change.current.date_notice_modified || change.current.date_notice_created || '날짜 정보 없음'}`, 
+            1024
+          ),
+          inline: false
+        }));
+
         embeds.push({
-          title: '📝 업데이트된 공지사항',
-          description: `**${changes.updatedNotices.length}개**의 공지사항이 업데이트되었습니다!`,
-          fields: changes.updatedNotices.map(change => ({
-            name: change.current.notice_title,
-            value: `[바로가기](${change.current.notice_url})\n📅 ${change.current.date_notice_modified || change.current.date_notice_created}`,
-            inline: false
-          })),
+          title: truncateText('📝 업데이트된 공지사항', 256),
+          description: truncateText(`**${changes.updatedNotices.length}개**의 공지사항이 업데이트되었습니다!`, 4096),
+          fields: fields,
           color: 0xffa500,
           timestamp: timestamp
         });
       }
     }
 
+    // Discord embeds 제한 (최대 10개)
+    const limitedEmbeds = embeds.slice(0, 10);
+
     return {
-      username: 'MapleStory 공지봇',
+      username: truncateText('MapleStory 공지봇', 80),
       avatar_url: 'https://ssl.nx.com/s2/game/maplestory/renewal/common/game_icon.png',
-      embeds: embeds
+      embeds: limitedEmbeds
     };
   }
 
   async sendDiscordNotification(message) {
     try {
+      // 메시지 유효성 검사
+      if (!message || !message.embeds || message.embeds.length === 0) {
+        throw new Error('Invalid message format: no embeds found');
+      }
+
+      // JSON 직렬화 테스트
+      let jsonPayload;
+      try {
+        jsonPayload = JSON.stringify(message);
+      } catch (jsonError) {
+        throw new Error(`JSON serialization failed: ${jsonError.message}`);
+      }
+
+      // 메시지 크기 체크 (대략적)
+      if (jsonPayload.length > 50000) {
+        console.warn('Message might be too large, truncating embeds...');
+        message.embeds = message.embeds.slice(0, 5);
+        jsonPayload = JSON.stringify(message);
+      }
+
+      console.log('Sending Discord message:', JSON.stringify(message, null, 2));
+
       const response = await fetch(this.discordWebhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(message)
+        body: jsonPayload
       });
 
       if (!response.ok) {
-        throw new Error(`Discord webhook failed: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        console.error('Discord API Error Response:', errorText);
+        throw new Error(`Discord webhook failed: ${response.status} ${response.statusText}\nResponse: ${errorText}`);
       }
 
       console.log('Discord notification sent successfully');
     } catch (error) {
       console.error('Error sending Discord notification:', error);
+      
+      // 간단한 fallback 메시지 시도
+      try {
+        const fallbackMessage = {
+          content: `⚠️ 메이플스토리 공지사항 확인 중 알림 전송 오류가 발생했습니다.\n오류: ${error.message}`
+        };
+        
+        const fallbackResponse = await fetch(this.discordWebhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(fallbackMessage)
+        });
+
+        if (fallbackResponse.ok) {
+          console.log('Fallback message sent successfully');
+        }
+      } catch (fallbackError) {
+        console.error('Fallback message also failed:', fallbackError);
+      }
+      
       throw error;
     }
   }
@@ -250,6 +329,9 @@ class MapleNoticeChecker {
     }
   }
 }
+
+// 모듈 export
+module.exports = MapleNoticeChecker;
 
 // 스크립트 실행
 if (require.main === module) {
