@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:vercel.com)",
+      "WebFetch(domain:openapi.nexon.com)",
+      "WebSearch",
+      "Read(/C:\\study\\MZ4C/**)",
+      "Read(/C:\\study\\MZ4C/**)",
+      "Read(/C:\\study\\MZ4C\\src\\lib/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,0 +1,258 @@
+const fs = require('fs').promises;
+const path = require('path');
+
+const API_BASE_URL = 'https://open.api.nexon.com/maplestory/v1';
+const DATA_FILE = 'notice-data.json';
+
+class MapleNoticeChecker {
+  constructor() {
+    this.apiKey = process.env.NEXON_API_KEY;
+    this.discordWebhookUrl = process.env.DISCORD_WEBHOOK_URL;
+    
+    if (!this.apiKey) {
+      throw new Error('NEXON_API_KEY environment variable is required');
+    }
+    
+    if (!this.discordWebhookUrl) {
+      throw new Error('DISCORD_WEBHOOK_URL environment variable is required');
+    }
+  }
+
+  get headers() {
+    return {
+      'x-nxopen-api-key': this.apiKey,
+      'Content-Type': 'application/json'
+    };
+  }
+
+  async fetchNotices() {
+    try {
+      const response = await fetch(`${API_BASE_URL}/notice`, {
+        headers: this.headers
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching notices:', error);
+      throw error;
+    }
+  }
+
+  async loadPreviousData() {
+    try {
+      const data = await fs.readFile(DATA_FILE, 'utf8');
+      return JSON.parse(data);
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        console.log('No previous data found, creating new file');
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  async saveCurrentData(data) {
+    try {
+      await fs.writeFile(DATA_FILE, JSON.stringify(data, null, 2));
+      console.log('Data saved successfully');
+    } catch (error) {
+      console.error('Error saving data:', error);
+      throw error;
+    }
+  }
+
+  detectChanges(previousData, currentData) {
+    if (!previousData) {
+      return {
+        hasChanges: true,
+        newNotices: currentData.notice || [],
+        updatedNotices: [],
+        type: 'initial'
+      };
+    }
+
+    const changes = {
+      hasChanges: false,
+      newNotices: [],
+      updatedNotices: [],
+      type: 'update'
+    };
+
+    const previousNotices = previousData.notice || [];
+    const currentNotices = currentData.notice || [];
+
+    // 새로운 공지사항 찾기
+    const previousIds = new Set(previousNotices.map(notice => notice.notice_id));
+    changes.newNotices = currentNotices.filter(notice => !previousIds.has(notice.notice_id));
+
+    // 업데이트된 공지사항 찾기 (제목이나 내용이 변경된 경우)
+    const currentNoticeMap = new Map(currentNotices.map(notice => [notice.notice_id, notice]));
+    
+    for (const prevNotice of previousNotices) {
+      const currentNotice = currentNoticeMap.get(prevNotice.notice_id);
+      if (currentNotice && 
+          (prevNotice.notice_title !== currentNotice.notice_title || 
+           prevNotice.notice_url !== currentNotice.notice_url)) {
+        changes.updatedNotices.push({
+          previous: prevNotice,
+          current: currentNotice
+        });
+      }
+    }
+
+    changes.hasChanges = changes.newNotices.length > 0 || changes.updatedNotices.length > 0;
+    
+    return changes;
+  }
+
+  formatDiscordMessage(changes) {
+    const embeds = [];
+    const timestamp = new Date().toISOString();
+
+    if (changes.type === 'initial') {
+      embeds.push({
+        title: '🍁 메이플스토리 공지사항 모니터링 시작',
+        description: `현재 **${changes.newNotices.length}개**의 공지사항을 모니터링합니다.`,
+        color: 0x00ff00,
+        timestamp: timestamp
+      });
+
+      // 최근 5개 공지사항만 표시
+      const recentNotices = changes.newNotices.slice(0, 5);
+      if (recentNotices.length > 0) {
+        embeds.push({
+          title: '📋 최근 공지사항',
+          fields: recentNotices.map(notice => ({
+            name: notice.notice_title,
+            value: `[바로가기](${notice.notice_url})`,
+            inline: false
+          })),
+          color: 0x0099ff,
+          timestamp: timestamp
+        });
+      }
+    } else {
+      if (changes.newNotices.length > 0) {
+        embeds.push({
+          title: '🆕 새로운 공지사항',
+          description: `**${changes.newNotices.length}개**의 새로운 공지사항이 등록되었습니다!`,
+          fields: changes.newNotices.map(notice => ({
+            name: notice.notice_title,
+            value: `[바로가기](${notice.notice_url})\n📅 ${notice.date_notice_modified || notice.date_notice_created}`,
+            inline: false
+          })),
+          color: 0xff6b35,
+          timestamp: timestamp
+        });
+      }
+
+      if (changes.updatedNotices.length > 0) {
+        embeds.push({
+          title: '📝 업데이트된 공지사항',
+          description: `**${changes.updatedNotices.length}개**의 공지사항이 업데이트되었습니다!`,
+          fields: changes.updatedNotices.map(change => ({
+            name: change.current.notice_title,
+            value: `[바로가기](${change.current.notice_url})\n📅 ${change.current.date_notice_modified || change.current.date_notice_created}`,
+            inline: false
+          })),
+          color: 0xffa500,
+          timestamp: timestamp
+        });
+      }
+    }
+
+    return {
+      username: 'MapleStory 공지봇',
+      avatar_url: 'https://ssl.nx.com/s2/game/maplestory/renewal/common/game_icon.png',
+      embeds: embeds
+    };
+  }
+
+  async sendDiscordNotification(message) {
+    try {
+      const response = await fetch(this.discordWebhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(message)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Discord webhook failed: ${response.status} ${response.statusText}`);
+      }
+
+      console.log('Discord notification sent successfully');
+    } catch (error) {
+      console.error('Error sending Discord notification:', error);
+      throw error;
+    }
+  }
+
+  async run() {
+    try {
+      console.log('🔍 Checking for MapleStory notice changes...');
+      
+      // 현재 공지사항 데이터 가져오기
+      const currentData = await this.fetchNotices();
+      console.log(`📋 Found ${currentData.notice?.length || 0} notices`);
+
+      // 이전 데이터 로드
+      const previousData = await this.loadPreviousData();
+
+      // 변경사항 감지
+      const changes = this.detectChanges(previousData, currentData);
+
+      if (changes.hasChanges) {
+        console.log('🚨 Changes detected!');
+        console.log(`- New notices: ${changes.newNotices.length}`);
+        console.log(`- Updated notices: ${changes.updatedNotices.length}`);
+
+        // Discord 알림 발송
+        const discordMessage = this.formatDiscordMessage(changes);
+        await this.sendDiscordNotification(discordMessage);
+
+        // 현재 데이터 저장
+        await this.saveCurrentData(currentData);
+        
+        console.log('✅ Notification sent and data updated');
+      } else {
+        console.log('✅ No changes detected');
+      }
+
+    } catch (error) {
+      console.error('❌ Error in notice checker:', error);
+      
+      // 오류 발생시 Discord에 알림
+      try {
+        const errorMessage = {
+          username: 'MapleStory 공지봇',
+          avatar_url: 'https://ssl.nx.com/s2/game/maplestory/renewal/common/game_icon.png',
+          embeds: [{
+            title: '⚠️ 공지사항 확인 중 오류 발생',
+            description: `\`\`\`${error.message}\`\`\``,
+            color: 0xff0000,
+            timestamp: new Date().toISOString()
+          }]
+        };
+        
+        await this.sendDiscordNotification(errorMessage);
+      } catch (webhookError) {
+        console.error('Failed to send error notification:', webhookError);
+      }
+      
+      process.exit(1);
+    }
+  }
+}
+
+// 스크립트 실행
+if (require.main === module) {
+  const checker = new MapleNoticeChecker();
+  checker.run();
+}

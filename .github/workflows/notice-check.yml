@@ -1,0 +1,41 @@
+name: MapleStory Notice Monitor
+
+on:
+  schedule:
+    # 매 3시간마다 실행 (00:00, 03:00, 06:00, 09:00, 12:00, 15:00, 18:00, 21:00 KST)
+    - cron: '0 */3 * * *'
+  workflow_dispatch: # 수동 실행 가능
+
+jobs:
+  check-notice:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install dependencies
+      run: npm install
+      
+    - name: Check for notice changes
+      run: node check-notice.js
+      env:
+        NEXON_API_KEY: ${{ secrets.NEXON_API_KEY }}
+        DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        
+    - name: Commit changes if any
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add -A
+        if git diff --cached --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Update notice data [skip ci]"
+          git push
+        fi

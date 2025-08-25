@@ -1,0 +1,14 @@
+{
+  "name": "maple-notice-monitor",
+  "version": "1.0.0",
+  "description": "MapleStory notice monitoring system with Discord notifications",
+  "main": "check-notice.js",
+  "scripts": {
+    "start": "node check-notice.js",
+    "test": "node test-notice.js"
+  },
+  "keywords": ["maplestory", "notice", "discord", "webhook", "monitor"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}
