@@ -68,8 +68,9 @@ class MapleNoticeChecker {
 
   detectChanges(previousData, currentData) {
     if (!previousData) {
+      // 첫 실행시에는 알림 없이 데이터만 저장
       return {
-        hasChanges: true,
+        hasChanges: false, // 알림 보내지 않음
         newNotices: currentData.notice || [],
         updatedNotices: [],
         type: 'initial'
@@ -296,12 +297,18 @@ class MapleNoticeChecker {
         const discordMessage = this.formatDiscordMessage(changes);
         await this.sendDiscordNotification(discordMessage);
 
-        // 현재 데이터 저장
-        await this.saveCurrentData(currentData);
-        
         console.log('✅ Notification sent and data updated');
       } else {
-        console.log('✅ No changes detected');
+        if (changes.type === 'initial') {
+          console.log('📋 Initial data saved (no notification sent)');
+        } else {
+          console.log('✅ No changes detected');
+        }
+      }
+
+      // 변경사항이 있거나 초기 실행인 경우 데이터 저장
+      if (changes.hasChanges || changes.type === 'initial') {
+        await this.saveCurrentData(currentData);
       }
 
     } catch (error) {
