@@ -96,8 +96,8 @@ class MapleNoticeChecker {
     for (const prevNotice of previousNotices) {
       const currentNotice = currentNoticeMap.get(prevNotice.notice_id);
       if (currentNotice && 
-          (prevNotice.notice_title !== currentNotice.notice_title || 
-           prevNotice.notice_url !== currentNotice.notice_url)) {
+          (prevNotice.title !== currentNotice.title || 
+           prevNotice.url !== currentNotice.url)) {
         changes.updatedNotices.push({
           previous: prevNotice,
           current: currentNotice
@@ -142,8 +142,8 @@ class MapleNoticeChecker {
       const recentNotices = changes.newNotices.slice(0, 3);
       if (recentNotices.length > 0) {
         const fields = recentNotices.map(notice => ({
-          name: truncateText(notice.notice_title || '제목 없음', 256),
-          value: truncateText(`[바로가기](${validateUrl(notice.notice_url)})`, 1024),
+          name: truncateText(notice.title || '제목 없음', 256),
+          value: truncateText(`[바로가기](${validateUrl(notice.url)})`, 1024),
           inline: false
         }));
 
@@ -159,9 +159,9 @@ class MapleNoticeChecker {
         // 새 공지사항도 최대 5개로 제한
         const limitedNewNotices = changes.newNotices.slice(0, 5);
         const fields = limitedNewNotices.map(notice => ({
-          name: truncateText(notice.notice_title || '제목 없음', 256),
+          name: truncateText(notice.title || '제목 없음', 256),
           value: truncateText(
-            `[바로가기](${validateUrl(notice.notice_url)})\n📅 ${notice.date_notice_modified || notice.date_notice_created || '날짜 정보 없음'}`, 
+            `[바로가기](${validateUrl(notice.url)})\n📅 ${notice.date || '날짜 정보 없음'}`, 
             1024
           ),
           inline: false
@@ -180,9 +180,9 @@ class MapleNoticeChecker {
         // 업데이트된 공지사항도 최대 5개로 제한
         const limitedUpdatedNotices = changes.updatedNotices.slice(0, 5);
         const fields = limitedUpdatedNotices.map(change => ({
-          name: truncateText(change.current.notice_title || '제목 없음', 256),
+          name: truncateText(change.current.title || '제목 없음', 256),
           value: truncateText(
-            `[바로가기](${validateUrl(change.current.notice_url)})\n📅 ${change.current.date_notice_modified || change.current.date_notice_created || '날짜 정보 없음'}`, 
+            `[바로가기](${validateUrl(change.current.url)})\n📅 ${change.current.date || '날짜 정보 없음'}`, 
             1024
           ),
           inline: false
