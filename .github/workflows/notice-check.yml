@@ -2,8 +2,8 @@ name: MapleStory Notice Monitor
 
 on:
   schedule:
-    # 매 3시간마다 실행 (00:00, 03:00, 06:00, 09:00, 12:00, 15:00, 18:00, 21:00 KST)
-    - cron: '0 */3 * * *'
+    # 매 10분마다 실행
+    - cron: '*/10 * * * *'
   workflow_dispatch: # 수동 실행 가능
 
 permissions:
