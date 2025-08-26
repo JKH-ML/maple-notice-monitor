@@ -1,7 +1,13 @@
 {
   "notice": [
     {
-      "title": "(연장)[패치중] 8/26(화) ver1.2.406 마이너(6)패치(07:00~10:00)",
+      "title": "하드 카링 신념의 연마석 드롭률 관련 안내",
+      "url": "https://maplestory.nexon.com/News/Notice/Notice/147550",
+      "notice_id": 147550,
+      "date": "2025-08-26T10:01+09:00"
+    },
+    {
+      "title": "(연장)[패치완료] 8/26(화)ver1.2.406 마이너(6)패치(07:00~10:00)",
       "url": "https://maplestory.nexon.com/News/Notice/Notice/147549",
       "notice_id": 147549,
       "date": "2025-08-25T19:51+09:00"
@@ -113,12 +119,6 @@
       "url": "https://maplestory.nexon.com/News/Notice/Notice/147423",
       "notice_id": 147423,
       "date": "2025-08-07T14:00+09:00"
-    },
-    {
-      "title": "8/7(목) 넥슨 정기점검 안내",
-      "url": "https://maplestory.nexon.com/News/Notice/Notice/147406",
-      "notice_id": 147406,
-      "date": "2025-08-05T15:44+09:00"
     }
   ]
 }
