@@ -1,6 +1,12 @@
 {
   "notice": [
     {
+      "title": "[패치완료] 8/28(목) ver1.2.406 마이너 버전 (9) 패치 (14:50 적용)",
+      "url": "https://maplestory.nexon.com/News/Notice/Notice/147574",
+      "notice_id": 147574,
+      "date": "2025-08-28T14:50+09:00"
+    },
+    {
       "title": "[패치완료] 8/27(수) ver1.2.406 마이너 버전 (8) 패치 (13:50 적용)",
       "url": "https://maplestory.nexon.com/News/Notice/Notice/147562",
       "notice_id": 147562,
@@ -113,12 +119,6 @@
       "url": "https://maplestory.nexon.com/News/Notice/Notice/147435",
       "notice_id": 147435,
       "date": "2025-08-08T15:40+09:00"
-    },
-    {
-      "title": "Tver.1.2.190~191 우수테스터 발표 안내",
-      "url": "https://maplestory.nexon.com/News/Notice/Notice/147426",
-      "notice_id": 147426,
-      "date": "2025-08-07T17:45+09:00"
     }
   ]
 }
