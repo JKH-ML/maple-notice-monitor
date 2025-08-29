@@ -1,6 +1,12 @@
 {
   "notice": [
     {
+      "title": "넥슨에서 토스페이가 처음이라면 결제 시 10% 토스포인트 즉시 적립",
+      "url": "https://maplestory.nexon.com/News/Notice/Notice/147581",
+      "notice_id": 147581,
+      "date": "2025-08-29T16:00+09:00"
+    },
+    {
       "title": "[패치완료] 8/28(목) ver1.2.406 마이너 버전 (9) 패치 (14:50 적용)",
       "url": "https://maplestory.nexon.com/News/Notice/Notice/147574",
       "notice_id": 147574,
@@ -113,12 +119,6 @@
       "url": "https://maplestory.nexon.com/News/Notice/Notice/147455",
       "notice_id": 147455,
       "date": "2025-08-12T15:51+09:00"
-    },
-    {
-      "title": "8/8(금) 버그악용/불법프로그램 신고 보상 지급 안내",
-      "url": "https://maplestory.nexon.com/News/Notice/Notice/147435",
-      "notice_id": 147435,
-      "date": "2025-08-08T15:40+09:00"
     }
   ]
 }
