@@ -1,6 +1,12 @@
 {
   "notice": [
     {
+      "title": "[패치완료] 9/3(수) ver1.2.406 마이너 버전 (10) 패치 (19:19 적용)",
+      "url": "https://maplestory.nexon.com/News/Notice/Notice/147616",
+      "notice_id": 147616,
+      "date": "2025-09-03T19:19+09:00"
+    },
+    {
       "title": "[점검완료] 9/3(수) 전체 월드 채널 점검 (17:50~18:50)",
       "url": "https://maplestory.nexon.com/News/Notice/Notice/147614",
       "notice_id": 147614,
@@ -113,12 +119,6 @@
       "url": "https://maplestory.nexon.com/News/Notice/Notice/147502",
       "notice_id": 147502,
       "date": "2025-08-19T14:37+09:00"
-    },
-    {
-      "title": "NEXT 쇼케이스 유출 법적 대응 결과 안내",
-      "url": "https://maplestory.nexon.com/News/Notice/Notice/147484",
-      "notice_id": 147484,
-      "date": "2025-08-14T18:44+09:00"
     }
   ]
 }
