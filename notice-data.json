@@ -1,6 +1,12 @@
 {
   "notice": [
     {
+      "title": "[점검예정] 9/3(수) 전체 월드 채널 점검 (17:50~18:50)",
+      "url": "https://maplestory.nexon.com/News/Notice/Notice/147614",
+      "notice_id": 147614,
+      "date": "2025-09-03T17:23+09:00"
+    },
+    {
       "title": "넥슨플레이 달력다오 EP.5 오픈 이벤트 진행 안내",
       "url": "https://maplestory.nexon.com/News/Notice/Notice/147609",
       "notice_id": 147609,
@@ -113,12 +119,6 @@
       "url": "https://maplestory.nexon.com/News/Notice/Notice/147484",
       "notice_id": 147484,
       "date": "2025-08-14T18:44+09:00"
-    },
-    {
-      "title": "8/15(금) 넥슨 고객상담실 휴무 안내",
-      "url": "https://maplestory.nexon.com/News/Notice/Notice/147483",
-      "notice_id": 147483,
-      "date": "2025-08-14T17:45+09:00"
     }
   ]
 }
